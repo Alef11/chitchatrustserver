@@ -1,0 +1,31 @@
+# Ignore Rust build artifacts
+/target/
+
+# Ignore Cargo.lock for workspace-based projects (optional)
+Cargo.lock
+
+# Ignore the compiled binary
+*.rs.bk
+
+# Ignore editor-specific files
+*.swp
+*~
+.vscode/
+.idea/
+
+# Ignore temporary files from Cargo
+*.d
+
+# Ignore the Rust test and profiling directories
+/.rustup/
+*.profraw
+*.profdata
+
+# Ignore MacOS Finder files
+.DS_Store
+
+# Ignore Linux-specific files
+*.orig
+
+# Ignore Windows-specific files
+Thumbs.db
