@@ -7,3 +7,5 @@ edition = "2024"
 sha2 = "0.10"
 chrono = "0.4"
 chrono-tz = "0.5"
+mongodb = "3.2.0"  # Or whatever the latest version is
+tokio = { version = "1", features = ["full"] }
