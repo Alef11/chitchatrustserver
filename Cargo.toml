@@ -9,3 +9,4 @@ chrono = "0.4"
 chrono-tz = "0.5"
 mysql = "25"
 tokio = { version = "1", features = ["full"] }
+dotenv = "0.15"
