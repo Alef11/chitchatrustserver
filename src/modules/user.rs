@@ -10,8 +10,8 @@ pub struct user {
     pub username: String,
     pub password: String,
     pub email: String,
-    pub created_at: String,
-    pub last_online: String,
+    pub created_at: Xtime,
+    pub last_online: Xtime,
     pub is_admin: bool,
 }
 
@@ -24,8 +24,8 @@ impl user {
             username,
             password: encrypted_password,
             email,
-            created_at: Xtime::now().to_string(),
-            last_online: Xtime::now().to_string(),
+            created_at: Xtime::now(),
+            last_online: Xtime::now(),
             is_admin: false,
         }
     }
@@ -42,8 +42,8 @@ impl user {
                 "username" => &self.username,
                 "password" => &self.password,
                 "email" => &self.email,
-                "created_at" => &self.created_at,
-                "last_online" => &self.last_online,
+                "created_at" => &self.created_at.to_string(),
+                "last_online" => &self.last_online.to_string(),
                 "is_admin" => self.is_admin,
             },
         )
