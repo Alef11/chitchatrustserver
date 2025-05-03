@@ -72,4 +72,30 @@ impl Xtime {
             now.year() as u16,
         )
     }
+
+    pub fn to_mariadb_datetime(&self) -> String {
+        format!(
+            "{:04}-{:02}-{:02} {:02}:{:02}:{:02}",
+            self.years, self.months, self.days, self.hours, self.minutes, self.seconds
+        )
+    }
+
+    pub fn from_mariadb_datetime(datetime: &str) -> Self {
+        let parts: Vec<&str> = datetime.split(' ').collect();
+        if parts.len() != 2 {
+            panic!("Invalid datetime format. Expected format is yyyy-MM-dd hh:mm:ss");
+        }
+        let date_parts: Vec<&str> = parts[0].split('-').collect();
+        let time_parts: Vec<&str> = parts[1].split(':').collect();
+        if date_parts.len() != 3 || time_parts.len() != 3 {
+            panic!("Invalid datetime format. Expected format is yyyy-MM-dd hh:mm:ss");
+        }
+        let years = date_parts[0].parse::<u16>().unwrap();
+        let months = date_parts[1].parse::<u8>().unwrap();
+        let days = date_parts[2].parse::<u8>().unwrap();
+        let hours = time_parts[0].parse::<u8>().unwrap();
+        let minutes = time_parts[1].parse::<u8>().unwrap();
+        let seconds = time_parts[2].parse::<u8>().unwrap();
+        Xtime::new(seconds, minutes, hours, days, months, years)
+    }
 }

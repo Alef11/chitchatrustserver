@@ -48,3 +48,22 @@ fn test_now() {
 
     println!("Current time: {}", time.to_string());
 }
+
+#[test]
+fn test_to_mariadb_datetime() {
+    let time = Xtime::new(30, 45, 12, 15, 8, 2023);
+    let datetime = time.to_mariadb_datetime();
+    assert_eq!(datetime, "2023-08-15 12:45:30");
+}
+
+#[test]
+fn test_from_mariadb_datetime() {
+    let datetime = "2023-08-15 12:45:30";
+    let time = Xtime::from_mariadb_datetime(datetime);
+    assert_eq!(time.seconds, 30);
+    assert_eq!(time.minutes, 45);
+    assert_eq!(time.hours, 12);
+    assert_eq!(time.days, 15);
+    assert_eq!(time.months, 8);
+    assert_eq!(time.years, 2023);
+}
