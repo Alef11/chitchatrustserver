@@ -1,7 +1,6 @@
 use chitchatrustserver::{
     db::db::{self, DB_POOL},
     modules::user::user,
-    utils::xtime::Xtime,
 };
 use mysql::prelude::Queryable;
 

@@ -12,9 +12,9 @@ if exist .env (
 )
 
 :: Prompt the user for values
-set /p MARIADB_ROOT_PASSWORD=Enter MARIADB_ROOT_PASSWORD:
-set /p MARIADB_USER=Enter MARIADB_USER:
-set /p MARIADB_PASSWORD=Enter MARIADB_PASSWORD:
+set /p MARIADB_ROOT_PASSWORD=Enter MARIADB_ROOT_PASSWORD: 
+set /p MARIADB_USER=Enter MARIADB_USER: 
+set /p MARIADB_PASSWORD=Enter MARIADB_PASSWORD: 
 
 :: Write to .env file
 (

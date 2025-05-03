@@ -1,14 +1,13 @@
 use dotenv::dotenv;
 use std::env;
 
-fn main() {
+lazy_static::lazy_static! {
+    pub static ref MARIADB_ROOT_PASSWORD: String = env::var("MARIADB_ROOT_PASSWORD").expect("MARIADB_ROOT_PASSWORD must be set");
+    pub static ref MARIADB_USER: String = env::var("MARIADB_USER").expect("MARIADB_USER must be set");
+    pub static ref MARIADB_PASSWORD: String = env::var("MARIADB_PASSWORD").expect("MARIADB_PASSWORD must be set");
+}
+
+pub fn load_env() {
     // Load the environment variables from the .env file
     dotenv().ok();
-
-    // Access the environment variables using std::env
-    let database_url = env::var("DATABASE_URL").expect("DATABASE_URL must be set");
-    let secret_key = env::var("SECRET_KEY").expect("SECRET_KEY must be set");
-
-    println!("Database URL: {}", database_url);
-    println!("Secret Key: {}", secret_key);
 }

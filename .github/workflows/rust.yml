@@ -26,11 +26,12 @@ jobs:
           --health-retries=5
 
     env:
+      MARIADB_ROOT_PASSWORD: secret
+      MARIADB_USER: user
+      MARIADB_PASSWORD: password
+      MARIADB_DATABASE: chitchat_db
       DB_HOST: 127.0.0.1
       DB_PORT: 3306
-      DB_USER: user
-      DB_PASSWORD: password
-      DB_NAME: chitchat_db
 
     steps:
     - name: Checkout code
