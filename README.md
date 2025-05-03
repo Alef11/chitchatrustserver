@@ -1,24 +1,32 @@
-# ChitChatRustServer
+# 📨 Rust ChatApp Backend
 
-ChitChatRustServer is a chat application currently under development. It aims to provide a secure and efficient platform for private messaging and group chats. Built with Rust, the project focuses on performance, scalability, and security.
+This is the backend for a self-hostable chat application, built in Rust with modular design and future extensibility in mind.
 
-## Features (Planned)
-- **Private Messaging**: Secure one-on-one conversations.
-- **Group Chats**: Create and manage group conversations.
-- **End-to-End Encryption**: Ensure privacy and security for all messages.
-- **User Authentication**: Robust user management and authentication system.
-- **Real-Time Communication**: Instant message delivery using efficient protocols.
+## 🔧 Features
 
-### Key Components
-- **Encryption Utilities**: Located in [`src/utils/encryption.rs`](src/utils/encryption.rs), this module handles hashing and password verification using the SHA-256 algorithm.
-- **Modules**: Core functionalities like user management and messaging are implemented in the `src/modules` directory.
+- **Modular Rust Architecture** – Clean and extensible codebase built for maintainability.
+- **Direct Messages & Group Chats** – Core messaging support for one-on-one and group communication.
+- **Self-hostable** – Easily deployable via Docker Compose.
+- **Custom `Xtime` Library** – A lightweight and user-defined time system to avoid external datetime dependencies like `chrono::DateTime`.
+- **Secure Password Handling** – Passwords are stored encrypted using SHA-256 hashing.
+- **MariaDB Integration** – User and message data is persisted in a MariaDB database.
+- **Dynamic Environment Setup** – A `.bat` script is included to prompt for and generate your `.env` file (next to the `docker-compose.yml`) for database configuration.
 
-## Getting Started
-### Prerequisites
-- Rust (latest stable version)
+## 🗃️ Database
 
-### Installation
-1. Clone the repository:
-   ```sh
-   git clone https://github.com/Alef11/chitchatrustserver.git
-   cd chitchatrustserver
+- User data includes:
+  - `uuid`, `username`, `email`
+  - Timestamps for `created_at` and `last_online` stored using `Xtime`
+- Messages are handled via a unified message structure that distinguishes between direct and group messages.
+
+## 🛠️ Structure Overview
+
+- `utils/xtime.rs` – Custom time system replacing `chrono::DateTime`
+- `utils/encryption.rs` – Password hashing and verification
+- `db/` – Database logic for users and message handling
+- `.env` – Created via the provided batch script for secure local setup
+
+## 📦 Coming Soon
+
+- Installation & deployment guide
+- Full API documentation
