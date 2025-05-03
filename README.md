@@ -26,6 +26,25 @@ This is the backend for a self-hostable chat application, built in Rust with mod
 - `db/` – Database logic for users and message handling
 - `.env` – Created via the provided batch script for secure local setup
 
+## ⏱️ Xtime Library
+
+The `Xtime` library was created as a custom time solution to avoid the complexities and overhead of external libraries like `chrono::DateTime`. It provides a lightweight and simplified way of handling and representing time within the application.
+
+### Why `Xtime`?
+
+- **Customizability**: The standard datetime libraries often provide too much functionality for our needs. `Xtime` is designed to keep things simple while offering enough features to handle the application’s needs.
+- **Consistency**: With `Xtime`, we use a fixed structure and format that doesn’t rely on external libraries, ensuring consistent behavior across all instances.
+- **Simplicity**: It allows easy parsing and formatting without the need for complicated third-party dependencies.
+
+### What `Xtime` Can Do
+
+- **Time Representation**: `Xtime` uses a structure with separate fields for seconds, minutes, hours, days, months, and years.
+- **Format Conversion**: It provides simple methods for converting to and from different formats, such as converting to a string for database insertion (`YYYY-MM-DD HH:mm:ss` format).
+- **Current Time**: You can generate the current time using `Xtime::now()`, which fetches the current time from the system and returns it in the custom format.
+- **Parsing**: It also supports parsing times from strings in a predefined format to ensure that no external libraries are needed to parse or format the time.
+
+
+
 ## 📦 Coming Soon
 
 - Installation & deployment guide
