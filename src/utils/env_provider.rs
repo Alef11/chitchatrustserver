@@ -9,18 +9,31 @@ fn init_env() {
     });
 }
 
+/// Macro to safely read env vars with fallback or panic
+#[macro_export]
+macro_rules! env_var {
+    ($key:expr) => {{
+        init_env();
+        std::env::var($key).expect(concat!($key, " must be set"))
+    }};
+    ($key:expr, $default:expr) => {{
+        init_env();
+        std::env::var($key).unwrap_or_else(|_| $default.to_string())
+    }};
+}
+
 lazy_static::lazy_static! {
-    pub static ref MARIADB_USER: String = {
-        init_env();
-        env::var("MARIADB_USER").expect("MARIADB_USER must be set")
-    };
-    pub static ref MARIADB_PASSWORD: String = {
-        init_env();
-        env::var("MARIADB_PASSWORD").expect("MARIADB_PASSWORD must be set")
-    };
+    pub static ref MARIADB_USER: String = env_var!("MARIADB_USER");
+    pub static ref MARIADB_PASSWORD: String = env_var!("MARIADB_PASSWORD");
+    pub static ref MARIADB_HOST: String = env_var!("MARIADB_HOST", "localhost");
+    pub static ref MARIADB_PORT: String = env_var!("MARIADB_PORT", "3306");
+    pub static ref MARIADB_DB: String = env_var!("MARIADB_DATABASE");
     pub static ref DATABASE_URL: String = format!(
-        "mysql://{}:{}@localhost:3306/chitchat_db",
+        "mysql://{}:{}@{}:{}/{}",
         *MARIADB_USER,
-        *MARIADB_PASSWORD
+        *MARIADB_PASSWORD,
+        *MARIADB_HOST,
+        *MARIADB_PORT,
+        *MARIADB_DB
     );
 }
