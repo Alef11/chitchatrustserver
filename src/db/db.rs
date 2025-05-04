@@ -4,6 +4,7 @@ use std::sync::LazyLock;
 
 use crate::modules::user::user;
 use crate::utils::env_provider;
+use crate::utils::xtime::Xtime;
 
 static DB_CHARACTER_LIMIT: usize = 100;
 
@@ -11,6 +12,14 @@ static DB_CHARACTER_LIMIT: usize = 100;
 pub static DB_POOL: LazyLock<Pool> = LazyLock::new(|| {
     Pool::new(env_provider::DATABASE_URL.as_str()).expect("Failed to create DB pool")
 });
+
+pub fn init_db() -> Result<()> {
+    create_users_table()?;
+    create_messages_table()?;
+    create_groups_table()?;
+    create_group_members_table()?;
+    Ok(())
+}
 
 pub fn create_users_table() -> Result<()> {
     let mut conn = DB_POOL.get_conn()?;
@@ -85,6 +94,22 @@ pub fn create_group_members_table() -> Result<()> {
     Ok(())
 }
 
+pub fn create_token_table() -> Result<()> {
+    let mut conn = DB_POOL.get_conn()?;
+    let query = format!(
+        r"CREATE TABLE IF NOT EXISTS tokens (
+            user_id INT NOT NULL,
+            token varchar(256) NOT NULL PRIMARY KEY,
+            created_at DATETIME NOT NULL,
+            expires_at DATETIME NOT NULL,
+            FOREIGN KEY (user_id) REFERENCES users(uuid)
+        )"
+    );
+
+    conn.query_drop(query)?;
+    Ok(())
+}
+
 pub fn insert_user(user: &user) -> Result<u64> {
     let mut conn = DB_POOL.get_conn()?;
 
@@ -108,4 +133,20 @@ pub fn get_user_by_id(uuid: u64) -> Result<Option<user>> {
     )?;
 
     Ok(result.map(user::from_row))
+}
+
+pub fn insert_token(user_id: u32, token: &str, experies_at: Xtime) -> Result<()> {
+    let mut conn = DB_POOL.get_conn()?;
+
+    conn.exec_drop(
+        "INSERT INTO tokens (user_id, token, created_at, expires_at) VALUES (:user_id, :token, :created_at, :expires_at)",
+        params! {
+            "user_id" => user_id,
+            "token" => token,
+            "created_at" => "DATETIME(NOW())",
+            "expires_at" => experies_at.to_mariadb_datetime(),
+        },
+    )?;
+
+    Ok(())
 }

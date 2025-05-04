@@ -6,7 +6,7 @@ use crate::utils::{
 };
 
 pub struct user {
-    pub uuid: i32,
+    pub uuid: u32,
     pub username: String,
     pub password: String,
     pub email: String,
@@ -89,7 +89,7 @@ impl user {
         )
     }
 
-    pub fn get_uuid(&self) -> i32 {
+    pub fn get_uuid(&self) -> u32 {
         self.uuid
     }
 }
