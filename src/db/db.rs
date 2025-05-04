@@ -3,13 +3,13 @@ use mysql::*;
 use std::sync::LazyLock;
 
 use crate::modules::user::user;
+use crate::utils::env_provider;
 
 static DB_CHARACTER_LIMIT: usize = 100;
 
 // Replace with your actual MariaDB connection URL
 pub static DB_POOL: LazyLock<Pool> = LazyLock::new(|| {
-    let url = "mysql://user:password@localhost:3306/chitchat_db";
-    Pool::new(url).expect("Failed to create DB pool")
+    Pool::new(env_provider::DATABASE_URL.as_str()).expect("Failed to create DB pool")
 });
 
 pub fn create_users_table() -> Result<()> {
