@@ -1,6 +1,6 @@
 use chitchatrustserver::{
     db::db::{self, DB_POOL},
-    modules::user::user,
+    modules::user::User,
 };
 use mysql::prelude::Queryable;
 
@@ -21,18 +21,14 @@ fn test_db_pool_connection() {
 
 #[test]
 fn test_insert_user() {
-    let create_table = db::create_users_table().expect("Failed to create users table");
-
-    let mut conn = DB_POOL
-        .get_conn()
-        .expect("Failed to get connection from DB_POOL");
+    db::create_users_table().expect("Failed to create users table");
 
     // Insert a test user
     let username = "testuser";
     let password = "testpassword";
     let email = "a@a.com";
 
-    let user1 = user::new(
+    let user1 = User::new(
         username.to_string(),
         password.to_string(),
         email.to_string(),

@@ -5,7 +5,7 @@ use crate::utils::{
     xtime::Xtime,
 };
 
-pub struct user {
+pub struct User {
     pub uuid: u32,
     pub username: String,
     pub password: String,
@@ -15,11 +15,11 @@ pub struct user {
     pub is_admin: bool,
 }
 
-impl user {
+impl User {
     pub fn new(username: String, password: String, email: String) -> Self {
         let encrypted_password = encrypt(&password);
         let generated_uuid = 0; //TODO: generate a unique UUID for the user
-        user {
+        User {
             uuid: generated_uuid,
             username,
             password: encrypted_password,
@@ -66,7 +66,7 @@ impl user {
 
         let last_online = Xtime::new(second2, minute2, hour2, day2, month2, year2);
 
-        user {
+        User {
             uuid: row.get("uuid").unwrap(),
             username: row.get("username").unwrap(),
             password: row.get("password").unwrap(),

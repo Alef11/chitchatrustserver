@@ -2,7 +2,7 @@ use mysql::prelude::*;
 use mysql::*;
 use std::sync::LazyLock;
 
-use crate::modules::user::user;
+use crate::modules::user::User;
 use crate::utils::env_provider;
 use crate::utils::xtime::Xtime;
 
@@ -110,7 +110,7 @@ pub fn create_token_table() -> Result<()> {
     Ok(())
 }
 
-pub fn insert_user(user: &user) -> Result<u64> {
+pub fn insert_user(user: &User) -> Result<u64> {
     let mut conn = DB_POOL.get_conn()?;
 
     let (query, bindings) = user.create_sql();
@@ -122,7 +122,7 @@ pub fn insert_user(user: &user) -> Result<u64> {
     Ok(uuid)
 }
 
-pub fn get_user_by_id(uuid: u64) -> Result<Option<user>> {
+pub fn get_user_by_id(uuid: u64) -> Result<Option<User>> {
     let mut conn = DB_POOL.get_conn()?;
 
     let result: Option<Row> = conn.exec_first(
@@ -132,21 +132,33 @@ pub fn get_user_by_id(uuid: u64) -> Result<Option<user>> {
         },
     )?;
 
-    Ok(result.map(user::from_row))
+    Ok(result.map(User::from_row))
 }
 
 pub fn insert_token(user_id: u32, token: &str, experies_at: Xtime) -> Result<()> {
     let mut conn = DB_POOL.get_conn()?;
 
     conn.exec_drop(
-        "INSERT INTO tokens (user_id, token, created_at, expires_at) VALUES (:user_id, :token, :created_at, :expires_at)",
+        "INSERT INTO tokens (user_id, token, created_at, expires_at) VALUES (:user_id, :token, NOW(), :expires_at)",
         params! {
             "user_id" => user_id,
             "token" => token,
-            "created_at" => "DATETIME(NOW())",
             "expires_at" => experies_at.to_mariadb_datetime(),
         },
     )?;
 
     Ok(())
+}
+
+pub fn get_user_by_token(token: &str) -> Result<Option<User>> {
+    let mut conn = DB_POOL.get_conn()?;
+
+    let result: Option<Row> = conn.exec_first(
+        "SELECT * FROM users WHERE uuid = (SELECT user_id FROM tokens WHERE token = :token)",
+        params! {
+            "token" => token,
+        },
+    )?;
+
+    Ok(result.map(User::from_row))
 }
