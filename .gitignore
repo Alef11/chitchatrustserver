@@ -32,3 +32,6 @@ Thumbs.db
 
 # Ignore environment files
 .env
+
+# Ignore certificates and keys
+/certs/

@@ -15,6 +15,7 @@ if exist .env (
 set /p MARIADB_ROOT_PASSWORD=Enter MARIADB_ROOT_PASSWORD: 
 set /p MARIADB_USER=Enter MARIADB_USER: 
 set /p MARIADB_PASSWORD=Enter MARIADB_PASSWORD: 
+set /p PUBLIC_DOMAIN=Enter PUBLIC_DOMAIN (e.g., example.com): 
 
 :: Prompt for optional values with defaults
 set /p MARIADB_HOST=Enter MARIADB_HOST [default: localhost]: 
@@ -34,6 +35,7 @@ if "!MARIADB_DATABASE!"=="" set MARIADB_DATABASE=chitchat_db
     echo MARIADB_HOST=%MARIADB_HOST%
     echo MARIADB_PORT=%MARIADB_PORT%
     echo MARIADB_DATABASE=%MARIADB_DATABASE%
+    echo PUBLIC_DOMAIN=%PUBLIC_DOMAIN%
 ) > .env
 
-echo .env file created successfully.
+echo .env file created successfully. ✅

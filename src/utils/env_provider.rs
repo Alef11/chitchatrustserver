@@ -36,4 +36,5 @@ lazy_static::lazy_static! {
         *MARIADB_PORT,
         *MARIADB_DB
     );
+    pub static ref PUBLIC_DOMAIN: String = env_var!("PUBLIC_DOMAIN", "localhost");
 }
