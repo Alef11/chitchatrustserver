@@ -9,7 +9,7 @@ use crate::utils::env_provider;
 
 pub async fn start_tls_server() -> Result<(), Box<dyn std::error::Error>> {
     // Use PUBLIC_DOMAIN from your env provider
-    let domain = env_provider::env_var!("PUBLIC_DOMAIN");
+    let domain = env_provider::PUBLIC_DOMAIN.clone();
 
     // Define the address to bind to (port 443 for HTTPS)
     let addr: SocketAddr = "[::]:443".parse()?; // Alternatively "0.0.0.0:443"
