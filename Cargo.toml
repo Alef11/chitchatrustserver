@@ -8,12 +8,13 @@ sha2 = "0.10"
 chrono = "0.4"
 chrono-tz = "0.5"
 mysql = "25"
-tokio = { version = "1", features = ["full"] }
 dotenv = "0.15"
 lazy_static = "1.5.0"
 rand = "0.9.1"
 base64 = "0.22.1"
-rocket = "0.5.1"
 futures = "0.3.31"
 tokio-stream = { version = "0.1.17", features = ["net"] }
 tokio-rustls-acme = "0.7.1"
+rocket = { version = "0.5.1", features = ["tls", "json"] }
+tokio = { version = "1", features = ["macros", "rt-multi-thread"] }
+rcgen = "0.13.2"
