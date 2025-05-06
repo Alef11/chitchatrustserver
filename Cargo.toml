@@ -17,4 +17,4 @@ tokio-stream = { version = "0.1.17", features = ["net"] }
 tokio-rustls-acme = "0.7.1"
 rocket = { version = "0.5.1", features = ["tls", "json"] }
 tokio = { version = "1", features = ["macros", "rt-multi-thread"] }
-rcgen = "0.13.2"
+rcgen = "0.11"
