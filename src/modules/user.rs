@@ -18,7 +18,7 @@ pub struct User {
 impl User {
     pub fn new(username: String, password: String, email: String) -> Self {
         let encrypted_password = encrypt(&password);
-        let generated_uuid = 0; //TODO: generate a unique UUID for the user
+        let generated_uuid = 0; //if uuid 0 user is not in db yet
         User {
             uuid: generated_uuid,
             username,

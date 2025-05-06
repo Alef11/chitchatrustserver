@@ -15,10 +15,10 @@ pub static DB_POOL: LazyLock<Pool> = LazyLock::new(|| {
 
 pub fn init_db() -> Result<()> {
     create_users_table()?;
-    create_messages_table()?;
     create_groups_table()?;
     create_group_members_table()?;
     create_token_table()?;
+    create_messages_table()?;
     Ok(())
 }
 
@@ -111,7 +111,7 @@ pub fn create_token_table() -> Result<()> {
     Ok(())
 }
 
-pub fn insert_user(user: &User) -> Result<u64> {
+pub fn insert_user(user: &User) -> Result<u32> {
     let mut conn = DB_POOL.get_conn()?;
 
     let (query, bindings) = user.create_sql();
@@ -120,10 +120,10 @@ pub fn insert_user(user: &User) -> Result<u64> {
 
     let uuid = conn.last_insert_id();
 
-    Ok(uuid)
+    Ok(uuid as u32)
 }
 
-pub fn get_user_by_id(uuid: u64) -> Result<Option<User>> {
+pub fn get_user_by_id(uuid: u32) -> Result<Option<User>> {
     let mut conn = DB_POOL.get_conn()?;
 
     let result: Option<Row> = conn.exec_first(
@@ -134,6 +134,19 @@ pub fn get_user_by_id(uuid: u64) -> Result<Option<User>> {
     )?;
 
     Ok(result.map(User::from_row))
+}
+
+pub fn get_id_by_username(username: &str) -> Result<Option<u32>> {
+    let mut conn = DB_POOL.get_conn()?;
+
+    let result: Option<Row> = conn.exec_first(
+        "SELECT uuid FROM users WHERE username = :username",
+        params! {
+            "username" => username,
+        },
+    )?;
+
+    Ok(result.map(|row| row.get::<u32, _>("uuid").unwrap()))
 }
 
 pub fn insert_token(user_id: u32, token: &str, experies_at: Xtime) -> Result<()> {

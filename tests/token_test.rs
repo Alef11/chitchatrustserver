@@ -20,7 +20,7 @@ fn test_token() {
 
     user_struct.uuid = user_id as u32; // Update the user_struct with the new UUID
 
-    let token1 = token::new_user_token(&user_struct, expering_time);
+    let token1 = token::new_user_token(user_struct.uuid, expering_time);
 
     // Verify the token was inserted correctly
     let result = db::get_user_by_token(&token1).expect("Failed to get user by token");

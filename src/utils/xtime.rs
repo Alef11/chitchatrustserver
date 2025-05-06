@@ -73,6 +73,18 @@ impl Xtime {
         )
     }
 
+    pub fn now_plus_year(years: i32) -> Self {
+        let now = chrono::Utc::now().with_timezone(&Berlin);
+        Xtime::new(
+            now.second() as u8,
+            now.minute() as u8,
+            now.hour() as u8,
+            now.day() as u8,
+            now.month() as u8,
+            (now.year() + years) as u16,
+        )
+    }
+
     pub fn to_mariadb_datetime(&self) -> String {
         format!(
             "{:04}-{:02}-{:02} {:02}:{:02}:{:02}",
