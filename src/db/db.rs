@@ -18,6 +18,7 @@ pub fn init_db() -> Result<()> {
     create_messages_table()?;
     create_groups_table()?;
     create_group_members_table()?;
+    create_token_table()?;
     Ok(())
 }
 
@@ -26,7 +27,7 @@ pub fn create_users_table() -> Result<()> {
     let query = format!(
         r"CREATE TABLE IF NOT EXISTS users (
             uuid int NOT NULL AUTO_INCREMENT PRIMARY KEY,
-            username varchar({}) NOT NULL,
+            username varchar({}) NOT NULL UNIQUE,
             password varchar({}) NOT NULL,
             email varchar({}),
             created_at DATETIME NOT NULL,
