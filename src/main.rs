@@ -5,7 +5,7 @@ use chitchatrustserver::db::db;
 use chitchatrustserver::utils::communication_structs::{
     ErrorResponse, LoginRequest, LoginResponse,
 };
-use chitchatrustserver::utils::logics;
+use chitchatrustserver::utils::{file_gen, logics};
 use chitchatrustserver::utils::tls_gen;
 use chitchatrustserver::utils::token;
 use chitchatrustserver::utils::xtime::Xtime;
@@ -43,6 +43,7 @@ fn login(login: Json<LoginRequest>) -> Result<Json<LoginResponse>, Json<ErrorRes
 async fn rocket() -> _ {
     tls_gen::generate_localhost_certs();
     db::init_db().expect("Failed to initialize database");
+    file_gen::generate_certs_directory();
 
     let config = Config {
         port: 443,
