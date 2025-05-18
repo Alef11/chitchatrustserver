@@ -6,3 +6,4 @@ pub mod tls_gen;
 pub mod token;
 pub mod xtime;
 pub mod file_gen;
+pub mod db_waiter;

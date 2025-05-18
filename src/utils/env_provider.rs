@@ -1,5 +1,6 @@
 use dotenv::dotenv;
 use std::sync::Once;
+use crate::logger::logger::LogExpect;
 
 static INIT: Once = Once::new();
 
@@ -14,7 +15,7 @@ fn init_env() {
 macro_rules! env_var {
     ($key:expr) => {{
         init_env();
-        std::env::var($key).expect(concat!($key, " must be set"))
+        std::env::var($key).log_expect(concat!($key, " must be set"), file!())
     }};
     ($key:expr, $default:expr) => {{
         init_env();

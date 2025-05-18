@@ -1,6 +1,7 @@
 use base64::{Engine, engine::general_purpose};
 use rand::{TryRngCore, rngs::OsRng};
 use sha2::{Digest, Sha256};
+use crate::logger::logger::LogExpect;
 
 pub fn encrypt(input: &str) -> String {
     let mut hasher = Sha256::new();
@@ -24,6 +25,6 @@ pub fn generate_token() -> String {
     let mut bytes = [0u8; 32]; // 256-bit token
     OsRng
         .try_fill_bytes(&mut bytes)
-        .expect("Failed to generate secure random bytes"); // Cryptographically secure RNG
+        .log_expect("Failed to generate secure random bytes", file!()); // Cryptographically secure RNG
     general_purpose::URL_SAFE_NO_PAD.encode(&bytes) // Base64 URL-safe encoding
 }

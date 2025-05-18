@@ -1,10 +1,13 @@
 #[macro_use]
 extern crate rocket;
 
+use chitchatrustserver::logger::logger::log_message;
+use chitchatrustserver::logger::logger::LogExpect;
 use chitchatrustserver::db::db;
 use chitchatrustserver::utils::communication_structs::{
     ErrorResponse, LoginRequest, LoginResponse,
 };
+use chitchatrustserver::utils::db_waiter;
 use chitchatrustserver::utils::{file_gen, logics};
 use chitchatrustserver::utils::tls_gen;
 use chitchatrustserver::utils::token;
@@ -39,21 +42,30 @@ fn login(login: Json<LoginRequest>) -> Result<Json<LoginResponse>, Json<ErrorRes
     }
 }
 
-#[launch]
-async fn rocket() -> _ {
-    tls_gen::generate_localhost_certs();
-    db::init_db().expect("Failed to initialize database");
-    file_gen::generate_certs_directory();
+#[tokio::main]
+async fn main() {
+    log_message("Spinning up chitchat Backend", file!());
 
-    let config = Config {
+    file_gen::generate_certs_directory();
+    tls_gen::generate_localhost_certs();
+
+
+    db_waiter::wait_for_db_connection().await;
+    db::init_db().log_expect("Failed to initialize database", file!());
+
+    let config = rocket::Config {
         port: 443,
         address: "0.0.0.0".parse().unwrap(),
-        tls: Some(TlsConfig::from_paths(
+        tls: Some(rocket::config::TlsConfig::from_paths(
             "certs/certificate.pem",
             "certs/private.pem",
         )),
-        ..Config::default()
+        ..rocket::Config::default()
     };
 
-    rocket::custom(config).mount("/", routes![index, login])
+    let _ = rocket::custom(config)
+        .mount("/", routes![index, login])
+        .launch()
+        .await;
 }
+

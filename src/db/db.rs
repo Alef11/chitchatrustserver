@@ -5,12 +5,12 @@ use std::sync::LazyLock;
 use crate::modules::user::User;
 use crate::utils::env_provider;
 use crate::utils::xtime::Xtime;
+use crate::logger::logger::LogExpect;
 
 static DB_CHARACTER_LIMIT: usize = 100;
 
-// Replace with your actual MariaDB connection URL
 pub static DB_POOL: LazyLock<Pool> = LazyLock::new(|| {
-    Pool::new(env_provider::DATABASE_URL.as_str()).expect("Failed to create DB pool")
+    Pool::new(env_provider::DATABASE_URL.as_str()).log_expect("Failed to create DB pool", file!())
 });
 
 pub fn init_db() -> Result<()> {
