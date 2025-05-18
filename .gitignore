@@ -38,4 +38,4 @@ Thumbs.db
 
 /acme_cache/
 
-.log
+*.log

@@ -13,28 +13,36 @@ use chitchatrustserver::utils::tls_gen;
 use chitchatrustserver::utils::token;
 use chitchatrustserver::utils::xtime::Xtime;
 use rocket::serde::json::Json;
+use std::net::IpAddr;
 
 #[get("/")]
-fn index() -> &'static str {
-    "Hello, world!"
+fn index(client_ip: IpAddr) -> String {
+    log!("[{}]: GET to / route", client_ip);
+    format!("Client IP: {}", client_ip)
 }
 
 #[post("/login", data = "<login>")]
-fn login(login: Json<LoginRequest>) -> Result<Json<LoginResponse>, Json<ErrorResponse>> {
+fn login(login: Json<LoginRequest>, client_ip: IpAddr) -> Result<Json<LoginResponse>, Json<ErrorResponse>> {
     let username = &login.username;
     let password = &login.password;
 
+    log!("[{}]: GET to / route", client_ip);
     let result = logics::login_logic(username, password);
 
     if result.0 {
+        log!("[{}]: Logged into User {} successfully", client_ip, username);
         let exp_time = Xtime::now_plus_year(1);
+        let exp_time_str = exp_time.to_string();
         let ttoken = token::new_user_token(result.1.unwrap(), exp_time);
+
+        log!("[{}]: Generated token for User {} expiering at {}", client_ip, username, exp_time_str);
 
         Ok(Json(LoginResponse {
             token: ttoken,
             user_id: result.1.unwrap(),
         }))
     } else {
+        log!("[{}]: Failed to login User {}. Invalid username or password", client_ip, username);
         return Err(Json(ErrorResponse {
             error: "Invalid username or password.".into(),
         }));
@@ -49,7 +57,7 @@ async fn main() {
     tls_gen::generate_localhost_certs();
 
     db_waiter::ensure_db_connection_ready().await;
-    
+
     db::init_db().log_expect("Failed to initialize database", file!());
 
     log!("Finished init");
