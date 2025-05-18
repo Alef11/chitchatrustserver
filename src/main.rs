@@ -12,7 +12,6 @@ use chitchatrustserver::utils::{file_gen, logics};
 use chitchatrustserver::utils::tls_gen;
 use chitchatrustserver::utils::token;
 use chitchatrustserver::utils::xtime::Xtime;
-use rocket::config::{Config, TlsConfig};
 use rocket::serde::json::Json;
 
 #[get("/")]
@@ -44,11 +43,10 @@ fn login(login: Json<LoginRequest>) -> Result<Json<LoginResponse>, Json<ErrorRes
 
 #[tokio::main]
 async fn main() {
-    log!("Spinning up chitchat Backend");
+    log!("Initializing Chitchat Backend");
 
     file_gen::generate_certs_directory();
     tls_gen::generate_localhost_certs();
-
 
     db_waiter::wait_for_db_connection().await;
     db::init_db().log_expect("Failed to initialize database", file!());

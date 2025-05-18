@@ -12,7 +12,7 @@ pub async fn wait_for_db_connection() {
         if attempt == max_retries {
             panic!("Failed to connect to the database after {} attempts", max_retries);
         } else {
-            if(db::DB_POOL.get_conn().is_ok()){
+            if db::DB_POOL.get_conn().is_ok(){
                 log!("Successfully connected to the database");
                 break;
             } else {
