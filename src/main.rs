@@ -48,7 +48,8 @@ async fn main() {
     file_gen::generate_certs_directory();
     tls_gen::generate_localhost_certs();
 
-    db_waiter::wait_for_db_connection().await;
+    db_waiter::ensure_db_connection_ready().await;
+    
     db::init_db().log_expect("Failed to initialize database", file!());
 
     log!("Finished init");

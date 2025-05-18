@@ -1,24 +1,42 @@
 use std::time::Duration;
-use crate::db::db;
+use mysql::Pool;
+use tokio::time::sleep;
+
 use crate::log;
 
-pub async fn wait_for_db_connection() {
-    let max_retries = 5;
+use super::env_provider;
+
+
+pub async fn ensure_db_connection_ready() {
+    let max_retries = 12;
     let delay = Duration::from_secs(5);
 
-    log!("Trying to reach the database...");
+    let db_url = env_provider::DATABASE_URL.as_str();
 
-    for attempt in 1..=max_retries{
-        if attempt == max_retries {
-            panic!("Failed to connect to the database after {} attempts", max_retries);
-        } else {
-            if db::DB_POOL.get_conn().is_ok(){
-                log!("Successfully connected to the database");
-                break;
-            } else {
-                log!(&format!("Attempt {}: Database connection failed, retrying in {} seconds...", attempt, delay.as_secs()));
-                std::thread::sleep(delay);
+    for attempt in 1..=max_retries {
+        match Pool::new(db_url) {
+            Ok(pool) => match pool.get_conn() {
+                Ok(_) => {
+                    log!("Successfully connected to the database");
+                    return;
+                }
+                Err(e) => {
+                    log!(&format!("Pool created, but failed to get connection: {}", e));
+                }
+            },
+            Err(e) => {
+                log!(&format!(
+                    "Attempt {}: Failed to create pool: {}",
+                    attempt, e
+                ));
             }
         }
+
+        if attempt == max_retries {
+            panic!("Could not connect to DB after {} attempts", max_retries);
+        }
+
+        log!("Retrying in {} seconds...", delay.as_secs());
+        sleep(delay).await;
     }
 }
