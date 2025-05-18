@@ -2,6 +2,7 @@ use mysql::prelude::*;
 use mysql::*;
 use std::sync::LazyLock;
 
+use crate::log;
 use crate::modules::user::User;
 use crate::utils::env_provider;
 use crate::utils::xtime::Xtime;
@@ -19,6 +20,10 @@ pub fn init_db() -> Result<()> {
     create_group_members_table()?;
     create_token_table()?;
     create_messages_table()?;
+
+    log!("Database initialized successfully");
+    log!("Database URL: {}", env_provider::DATABASE_URL.as_str());
+
     Ok(())
 }
 

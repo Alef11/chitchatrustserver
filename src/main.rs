@@ -1,7 +1,7 @@
 #[macro_use]
 extern crate rocket;
 
-use chitchatrustserver::logger::logger::log_message;
+use chitchatrustserver::log;
 use chitchatrustserver::logger::logger::LogExpect;
 use chitchatrustserver::db::db;
 use chitchatrustserver::utils::communication_structs::{
@@ -44,7 +44,7 @@ fn login(login: Json<LoginRequest>) -> Result<Json<LoginResponse>, Json<ErrorRes
 
 #[tokio::main]
 async fn main() {
-    log_message("Spinning up chitchat Backend", file!());
+    log!("Spinning up chitchat Backend");
 
     file_gen::generate_certs_directory();
     tls_gen::generate_localhost_certs();
@@ -52,6 +52,9 @@ async fn main() {
 
     db_waiter::wait_for_db_connection().await;
     db::init_db().log_expect("Failed to initialize database", file!());
+
+    log!("Finished init");
+    log!("----- Chitchat Backend -----");
 
     let config = rocket::Config {
         port: 443,

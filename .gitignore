@@ -37,3 +37,5 @@ Thumbs.db
 /certs/
 
 /acme_cache/
+
+.log

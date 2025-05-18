@@ -3,18 +3,18 @@ use std::fs::{self, File};
 use std::io::Write;
 use std::path::Path;
 use crate::logger::logger::LogExpect;
-use crate::logger::logger::log_message;
+use crate::log;
 
 pub fn generate_localhost_certs() {
     let cert_path = Path::new("certs/certificate.pem");
     let key_path = Path::new("certs/private.pem");
 
     if cert_path.exists() && key_path.exists() {
-        log_message("TLS certificate and key already exist.", file!());
+        log!("TLS certificate and key already exist.");
         return;
     }
 
-    log_message("Generating self-signed TLS certificate for localhost...", file!());
+    log!("Generating self-signed TLS certificate for localhost...");
 
     fs::create_dir_all("certs").log_expect("Failed to create certs directory", file!());
 
@@ -39,5 +39,5 @@ pub fn generate_localhost_certs() {
         .write_all(cert.serialize_private_key_pem().as_bytes())
         .log_expect("Failed to write private key", file!());
 
-    log_message("Certificate and key generated at: certs/", file!());
+    log!("Certificate and key generated at: certs/");
 }
