@@ -181,3 +181,16 @@ pub fn get_user_by_token(token: &str) -> Result<Option<User>> {
 
     Ok(result.map(User::from_row))
 }
+
+pub fn check_if_user_exists(username: &str) -> Result<bool> {
+    let mut conn = DB_POOL.get_conn()?;
+
+    let result: Option<Row> = conn.exec_first(
+        "SELECT * FROM users WHERE username = :username",
+        params! {
+            "username" => username,
+        },
+    )?;
+
+    Ok(result.is_some())
+}

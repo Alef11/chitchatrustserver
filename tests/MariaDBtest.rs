@@ -45,3 +45,26 @@ fn test_insert_user() {
 
     assert_eq!(result.username, username);
 }
+
+#[test]
+fn test_user_exists() {
+    db::create_users_table().expect("Failed to create users table");
+
+    // Insert a test user
+    let username = "testuser";
+    let password = "testpassword";
+    let email = "";
+
+    let user1 = User::new(
+        username.to_string(),
+        password.to_string(),
+        email.to_string(),
+    );
+
+    let _user_id = db::insert_user(&user1).expect("Failed to insert user");
+
+    // Verify the user exists
+    let exists = db::check_if_user_exists(username)
+        .expect("Failed to check if user exists");
+    assert!(exists, "User should exist");
+}

@@ -26,3 +26,11 @@ pub struct TokenLoginRequest {
     pub uuid: u32,
     pub token: String,
 }
+
+#[derive(Debug, Deserialize)]
+#[serde(crate = "rocket::serde")]
+pub struct RegisterRequest {
+    pub username: String,
+    pub password: String,
+    pub email: String,
+}

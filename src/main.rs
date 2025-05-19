@@ -5,7 +5,7 @@ use chitchatrustserver::log;
 use chitchatrustserver::logger::logger::LogExpect;
 use chitchatrustserver::db::db;
 use chitchatrustserver::utils::communication_structs::{
-    ErrorResponse, LoginRequest, LoginResponse,
+    ErrorResponse, LoginRequest, LoginResponse, RegisterRequest,
 };
 use chitchatrustserver::utils::db_waiter;
 use chitchatrustserver::utils::{file_gen, logics};
@@ -49,6 +49,35 @@ fn login(login: Json<LoginRequest>, client_ip: IpAddr) -> Result<Json<LoginRespo
     }
 }
 
+#[post("/register", data = "<register>")]
+fn register(register: Json<RegisterRequest>, client_ip: IpAddr) -> Result<Json<LoginResponse>, Json<ErrorResponse>> {
+    
+    let username = &register.username;
+    let password = &register.password;
+    let email = &register.email;
+
+    let result = logics::register_logic(username, password, email);
+
+    if result.0 {
+        log!("[{}]: Registered User {} successfully", client_ip, username);
+        let exp_time = Xtime::now_plus_year(1);
+        let exp_time_str = exp_time.to_string();
+        let ttoken = token::new_user_token(result.1.unwrap(), exp_time);
+
+        log!("[{}]: Generated token for User {} expiering at {}", client_ip, username, exp_time_str);
+
+        Ok(Json(LoginResponse {
+            token: ttoken,
+            user_id: result.1.unwrap(),
+        }))
+    } else {
+        log!("[{}]: Failed to register User {}. User already exists", client_ip, username);
+        return Err(Json(ErrorResponse {
+            error: "User already exists".into(),
+        }));
+    }
+}
+
 #[tokio::main]
 async fn main() {
     log!("Initializing Chitchat Backend");
@@ -74,7 +103,7 @@ async fn main() {
     };
 
     let _ = rocket::custom(config)
-        .mount("/", routes![index, login])
+        .mount("/", routes![index, login, register])
         .launch()
         .await;
 }
