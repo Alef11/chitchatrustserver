@@ -51,7 +51,7 @@ fn test_user_exists() {
     db::create_users_table().expect("Failed to create users table");
 
     // Insert a test user
-    let username = "testuser";
+    let username = "testuserexist";
     let password = "testpassword";
     let email = "";
 
