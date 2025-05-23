@@ -3,10 +3,10 @@ use mysql::*;
 use std::sync::LazyLock;
 
 use crate::log;
+use crate::logger::logger::LogExpect;
 use crate::modules::user::User;
 use crate::utils::env_provider;
 use crate::utils::xtime::Xtime;
-use crate::logger::logger::LogExpect;
 
 static DB_CHARACTER_LIMIT: usize = 100;
 
@@ -22,7 +22,6 @@ pub fn init_db() -> Result<()> {
     create_messages_table()?;
 
     log!("Database initialized successfully");
-    log!("Database URL: {}", env_provider::DATABASE_URL.as_str());
 
     Ok(())
 }

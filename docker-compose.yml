@@ -28,7 +28,6 @@ services:
       MARIADB_USER: ${MARIADB_USER}
       MARIADB_PASSWORD: ${MARIADB_PASSWORD}
 
-      
   adminer:
     image: adminer
     container_name: adminer

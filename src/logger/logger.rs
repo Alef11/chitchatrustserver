@@ -1,7 +1,7 @@
-use std::{fs::File, path::Path, sync::LazyLock};
-use std::sync::Mutex;
-use std::io::Write;
 use std::fmt::Debug;
+use std::io::Write;
+use std::sync::Mutex;
+use std::{fs::File, path::Path, sync::LazyLock};
 
 use chrono_tz::Europe::Berlin;
 
@@ -21,7 +21,6 @@ impl<T, E: Debug> LogExpect<T> for Result<T, E> {
         }
     }
 }
-
 
 static LOG_FILE: LazyLock<Mutex<File>> = LazyLock::new(|| {
     let path = "output.log";
@@ -47,9 +46,7 @@ macro_rules! log {
     };
 }
 
-
 pub fn log_message(message: &str, source_file: &str) {
-
     let current_time = chrono::Utc::now().with_timezone(&Berlin);
     let formatted_time = current_time.format("%d-%m-%Y %H:%M:%S").to_string();
 
@@ -61,7 +58,6 @@ pub fn log_message(message: &str, source_file: &str) {
 }
 
 pub fn log_error(message: &str, source_file: &str) {
-
     let current_time = chrono::Local::now();
     let formatted_time = current_time.format("%d-%m-%Y %H:%M:%S").to_string();
 
