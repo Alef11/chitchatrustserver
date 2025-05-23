@@ -1,7 +1,7 @@
 use crate::db::db;
-use crate::utils::encryption;
-use crate::modules::user::User;
 use crate::log;
+use crate::modules::user::User;
+use crate::utils::encryption;
 
 pub fn login_logic(username: &str, password: &str) -> (bool, Option<u32>) {
     let tid = match db::get_id_by_username(username) {

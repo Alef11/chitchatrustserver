@@ -55,6 +55,7 @@ pub fn create_messages_table() -> Result<()> {
             group_id INT,
             content TEXT NOT NULL,
             sent_at DATETIME NOT NULL,
+            read_at DATETIME,
             FOREIGN KEY (sender_id) REFERENCES users(uuid),
             FOREIGN KEY (recipient_id) REFERENCES users(uuid),
             FOREIGN KEY (group_id) REFERENCES groups(id)
@@ -192,4 +193,30 @@ pub fn check_if_user_exists(username: &str) -> Result<bool> {
     )?;
 
     Ok(result.is_some())
+}
+
+pub fn update_user_last_online(username: &str) -> Result<()> {
+    let mut conn = DB_POOL.get_conn()?;
+
+    conn.exec_drop(
+        "UPDATE users SET last_online = NOW() WHERE username = :username",
+        params! {
+            "username" => username,
+        },
+    )?;
+
+    Ok(())
+}
+
+pub fn get_users_starting_with(prefix: &str) -> Result<Vec<User>> {
+    let mut conn = DB_POOL.get_conn()?;
+
+    let result: Vec<Row> = conn.exec(
+        "SELECT * FROM users WHERE username LIKE :prefix",
+        params! {
+            "prefix" => format!("{}%", prefix),
+        },
+    )?;
+
+    Ok(result.into_iter().map(User::from_row).collect())
 }

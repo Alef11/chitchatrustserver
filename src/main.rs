@@ -1,7 +1,7 @@
 #[macro_use]
 extern crate rocket;
 
-use chitchatrustserver::db::db;
+use chitchatrustserver::db::db::{self};
 use chitchatrustserver::log;
 use chitchatrustserver::logger::logger::{LogExpect, log_error, shutdown_logging};
 use chitchatrustserver::utils::communication_structs::{
@@ -50,6 +50,8 @@ fn login(
             client_ip,
             username
         );
+        let _ = db::update_user_last_online(username);
+
         let exp_time = Xtime::now_plus_year(1);
         let exp_time_str = exp_time.to_string();
         let ttoken = token::new_user_token(result.1.unwrap(), exp_time);
