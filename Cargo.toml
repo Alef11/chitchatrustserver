@@ -15,7 +15,7 @@ base64 = "0.22.1"
 futures = "0.3.31"
 tokio-stream = { version = "0.1.17", features = ["net"] }
 tokio-rustls-acme = "0.7.1"
-rocket = { version = "0.5.1", features = ["tls", "json"] }
+rocket = { version = "0.5.1", features = ["tls", "json", "secrets"] }
 tokio = { version = "1", features = ["macros", "rt-multi-thread", "signal"] }
 rcgen = "0.11"
 serde = { version = "1.0", features = ["derive"] }

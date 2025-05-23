@@ -13,10 +13,14 @@ use chitchatrustserver::utils::token;
 use chitchatrustserver::utils::xtime::Xtime;
 use chitchatrustserver::utils::{file_gen, logics};
 use rocket::Request;
+use rocket::http::Cookie;
+use rocket::http::CookieJar;
+use rocket::http::SameSite;
 use rocket::serde::json::Json;
 use rocket_cors::{AllowedOrigins, CorsOptions};
 use std::net::IpAddr;
 use tokio::signal;
+
 #[cfg(unix)]
 use tokio::signal::unix;
 #[cfg(unix)]
@@ -77,6 +81,7 @@ fn login(
 fn register(
     register: Json<RegisterRequest>,
     client_ip: IpAddr,
+    cookies: &CookieJar<'_>,
 ) -> Result<Json<LoginResponse>, Json<ErrorResponse>> {
     log!("[{}]: POST to /register", client_ip);
 
@@ -88,9 +93,26 @@ fn register(
 
     if result.0 {
         log!("[{}]: Registered User {} successfully", client_ip, username);
+        let user_id = result.1.unwrap();
         let exp_time = Xtime::now_plus_year(1);
         let exp_time_str = exp_time.to_string();
         let ttoken = token::new_user_token(result.1.unwrap(), exp_time);
+
+        // Build and set private token cookie
+        let mut token_cookie = Cookie::new("token", ttoken.clone());
+        token_cookie.set_path("/");
+        token_cookie.set_http_only(true);
+        token_cookie.set_secure(true);
+        token_cookie.set_same_site(SameSite::Lax);
+        cookies.add_private(token_cookie);
+
+        // Build and set private username cookie
+        let mut username_cookie = Cookie::new("username", username.clone());
+        username_cookie.set_path("/");
+        username_cookie.set_http_only(true);
+        username_cookie.set_secure(true);
+        username_cookie.set_same_site(SameSite::Lax);
+        cookies.add_private(username_cookie);
 
         log!(
             "[{}]: Generated token for User {} expiering at {}",
@@ -101,7 +123,7 @@ fn register(
 
         Ok(Json(LoginResponse {
             token: ttoken,
-            user_id: result.1.unwrap(),
+            user_id,
         }))
     } else {
         log!(
