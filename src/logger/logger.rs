@@ -1,9 +1,8 @@
+use chrono_tz::Europe::Berlin;
 use std::fmt::Debug;
 use std::io::Write;
 use std::sync::Mutex;
 use std::{fs::File, path::Path, sync::LazyLock};
-
-use chrono_tz::Europe::Berlin;
 
 pub trait LogExpect<T> {
     fn log_expect(self, msg: &str, source_file: &str) -> T;
@@ -66,4 +65,18 @@ pub fn log_error(message: &str, source_file: &str) {
     let mut file = LOG_FILE.lock().unwrap();
     writeln!(file, "{log_message}").expect("Failed to write to log file");
     eprintln!("{log_message}");
+}
+
+pub fn shutdown_logging(message: &str) {
+    let current_time = chrono::Local::now();
+    let formatted_time = current_time.format("%d-%m-%Y %H:%M:%S").to_string();
+
+    let log_message = format!(
+        "[SHUTDOWN] with no error at {} ({})",
+        formatted_time, message
+    );
+
+    let mut file = LOG_FILE.lock().unwrap();
+    write!(file, "{log_message}").expect("Failed to write to log file\n\n");
+    println!("{log_message}");
 }

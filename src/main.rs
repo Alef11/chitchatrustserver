@@ -3,7 +3,7 @@ extern crate rocket;
 
 use chitchatrustserver::db::db;
 use chitchatrustserver::log;
-use chitchatrustserver::logger::logger::LogExpect;
+use chitchatrustserver::logger::logger::{LogExpect, log_error, shutdown_logging};
 use chitchatrustserver::utils::communication_structs::{
     ErrorResponse, LoginRequest, LoginResponse, RegisterRequest,
 };
@@ -16,6 +16,11 @@ use rocket::Request;
 use rocket::serde::json::Json;
 use rocket_cors::{AllowedOrigins, CorsOptions};
 use std::net::IpAddr;
+use tokio::signal;
+#[cfg(unix)]
+use tokio::signal::unix;
+#[cfg(unix)]
+use tokio::signal::unix::{SignalKind, signal};
 
 #[get("/")]
 fn index(client_ip: IpAddr) -> String {
@@ -124,14 +129,12 @@ fn forbidden_request(req: &Request) -> Json<ErrorResponse> {
 }
 
 #[tokio::main]
-async fn main() {
+async fn main() -> Result<(), rocket::Error> {
     log!("Initializing Chitchat Backend");
 
     file_gen::generate_certs_directory();
     tls_gen::generate_localhost_certs();
-
     db_waiter::ensure_db_connection_ready().await;
-
     db::init_db().log_expect("Failed to initialize database", file!());
 
     log!("Finished init");
@@ -147,22 +150,56 @@ async fn main() {
         ..rocket::Config::default()
     };
 
-    let allowed_origins = AllowedOrigins::some_exact(&[
-        "http://localhost:3000", // Your frontend origin
-    ]);
+    let allowed_origins = AllowedOrigins::some_exact(&["http://localhost:3000"]);
 
     let cors = CorsOptions {
         allowed_origins,
-        allow_credentials: true, // needed for cookies
+        allow_credentials: true,
         ..Default::default()
     }
     .to_cors()
     .expect("error setting up CORS");
 
-    let _ = rocket::custom(config)
+    let rocket = rocket::custom(config)
         .mount("/", routes![index, login, register])
         .register("/", catchers![forbidden_request])
-        .attach(cors)
-        .launch()
-        .await;
+        .attach(cors);
+
+    // Spawn Rocket in a background task
+    let _ = tokio::spawn(async move {
+        if let Err(_e) = rocket.launch().await {
+            log_error("Rocket launch failed: {}", file!());
+        }
+    });
+
+    // Signal handling
+    #[cfg(unix)]
+    {
+        let mut sigterm =
+            signal(SignalKind::terminate()).expect("Failed to register SIGTERM handler");
+        let mut sighup = signal(SignalKind::hangup()).expect("Failed to register SIGHUP handler");
+
+        tokio::select! {
+            _ = signal::ctrl_c() => {
+                log!("Received SIGINT (Ctrl+C) - shutting down.");
+            }
+            _ = sigterm.recv() => {
+                log!("Received SIGTERM (docker stop) - shutting down.");
+            }
+            _ = sighup.recv() => {
+                log!("Received SIGHUP (restart) - restarting.");
+            }
+        }
+    }
+
+    #[cfg(not(unix))]
+    {
+        signal::ctrl_c()
+            .await
+            .expect("Failed to install Ctrl+C handler");
+        log!("Received Ctrl+C");
+    }
+
+    shutdown_logging("End of main");
+    Ok(())
 }
