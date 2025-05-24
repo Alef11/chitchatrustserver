@@ -1,4 +1,7 @@
-use chitchatrustserver::utils::encryption::{check_password, encrypt};
+use chitchatrustserver::{
+    modules::user::User,
+    utils::encryption::{self, check_password, encrypt},
+};
 
 #[test]
 fn test_to_sha256() {
@@ -30,4 +33,20 @@ fn test_sha256_fail() {
     let expected_hash = "opfa";
     let result = encrypt(input);
     assert_ne!(result, expected_hash);
+}
+
+#[test]
+fn test_check_password_with_user() {
+    let username = "checkuseruser";
+    let password = "checkpassword";
+    let email = "a@a.a";
+
+    let user = User::new(
+        username.to_string(),
+        password.to_string(),
+        email.to_string(),
+    );
+
+    let result = encryption::check_password(password, &user.password);
+    assert!(result, "Password check failed for user: {}", username);
 }

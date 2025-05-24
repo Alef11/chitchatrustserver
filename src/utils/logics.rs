@@ -5,17 +5,27 @@ use crate::utils::encryption;
 
 pub fn login_logic(username: &str, password: &str) -> (bool, Option<u32>) {
     let tid = match db::get_id_by_username(username) {
-        Ok(Some(id)) => id,        // Extract the user ID if it exists
-        _ => return (false, None), // Return false if no ID is found or an error occurs
+        Ok(Some(id)) => id,
+        Ok(None) => {
+            log!("User {} not found in database", username);
+            return (false, None);
+        }
+        Err(e) => {
+            log!(
+                "Error occured during db lookup for user {}: {:?}",
+                username,
+                e
+            );
+            return (false, None);
+        }
     };
 
-    let user = match db::get_user_by_id(tid) {
-        Ok(Some(user)) => user,    // Extract the User if it exists
-        _ => return (false, None), // Return false if no User is found or an error occurs
-    };
-    if encryption::check_password(password, &user.password) {
+    let pass = db::get_password_username(username).expect("Failed to get password for user");
+
+    if encryption::check_password(password, &pass) {
         return (true, Some(tid));
     } else {
+        log!("Password check failed for user {}", username);
         return (false, None);
     }
 }
@@ -32,8 +42,11 @@ pub fn register_logic(username: &str, password: &str, email: &str) -> (bool, Opt
         log!(format!("User {} already exists", username).as_str());
         return (false, None);
     }
-    let hashed_password = encryption::encrypt(password);
-    let user = User::new(username.to_string(), hashed_password, email.to_string());
+    let user = User::new(
+        username.to_string(),
+        password.to_string(),
+        email.to_string(),
+    );
     let user_id = db::insert_user(&user);
     if user_id.is_ok() {
         return (true, Some(user_id.unwrap()));

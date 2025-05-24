@@ -220,3 +220,38 @@ pub fn get_users_starting_with(prefix: &str) -> Result<Vec<User>> {
 
     Ok(result.into_iter().map(User::from_row).collect())
 }
+
+pub fn delete_token(token: &str) -> Result<()> {
+    let mut conn = DB_POOL.get_conn()?;
+
+    conn.exec_drop(
+        "DELETE FROM tokens WHERE token = :token",
+        params! {
+            "token" => token,
+        },
+    )?;
+
+    Ok(())
+}
+
+pub fn get_password_username(username: &str) -> Result<String, Error> {
+    let mut conn = DB_POOL.get_conn()?;
+
+    let result: Option<Row> = conn.exec_first(
+        "SELECT password FROM users WHERE username = :username",
+        params! {
+            "username" => username,
+        },
+    )?;
+
+    match result {
+        Some(row) => {
+            let password: String = row.get("password").unwrap();
+            Ok(password)
+        }
+        None => Err(mysql::Error::IoError(std::io::Error::new(
+            std::io::ErrorKind::NotFound,
+            "User not found",
+        ))),
+    }
+}

@@ -1,6 +1,7 @@
 use chitchatrustserver::{
     db::db::{self, DB_POOL},
     modules::user::User,
+    utils::encryption,
 };
 use mysql::prelude::Queryable;
 
@@ -135,4 +136,79 @@ fn test_start_prefix() {
             user.username
         );
     }
+}
+
+#[test]
+fn test_get_user_by_id() {
+    db::create_users_table().expect("Failed to create users table");
+
+    // Insert a test user
+    let username = "testuserbyid";
+    let password = "testpassword";
+    let email = "a@a.com";
+    let user1 = User::new(
+        username.to_string(),
+        password.to_string(),
+        email.to_string(),
+    );
+    let user_id = db::insert_user(&user1).expect("Failed to insert user");
+    let result = db::get_user_by_id(user_id)
+        .expect("Failed to get user by ID")
+        .expect("User not found");
+    print!("User found: {:?}", result.to_string());
+    assert_eq!(result.username, username);
+}
+
+#[test]
+fn test_login_logic() {
+    db::create_users_table().expect("Failed to create users table");
+
+    let username = "testuserbyid";
+    let password = "testpassword";
+    let email = "a@a.com";
+    let user1 = User::new(
+        username.to_string(),
+        password.to_string(),
+        email.to_string(),
+    );
+
+    let user_id = db::insert_user(&user1).expect("Failed to insert user");
+    let user = db::get_user_by_id(user_id)
+        .expect("Failed to get user by ID")
+        .expect("User not found");
+
+    let result = encryption::check_password(password, &user.password);
+    assert!(result, "Password check failed for user: {}", username);
+}
+
+#[test]
+fn test_get_passowrd_username() {
+    db::create_users_table().expect("Failed to create users table");
+
+    let username = "testuserpasswordget";
+    let password = "testpasswordget";
+    let email = "a@a.com";
+
+    let user1 = User::new(
+        username.to_string(),
+        password.to_string(),
+        email.to_string(),
+    );
+
+    let _ = db::insert_user(&user1).expect("Failed to insert user");
+
+    let pass = db::get_password_username(username).expect("Failed to get password for user");
+
+    assert_eq!(
+        encryption::encrypt(password),
+        pass,
+        "Password does not match for user: {}",
+        username
+    );
+
+    assert_ne!(
+        pass, "a",
+        "Password should not be 'a' for user: {}",
+        username
+    );
 }

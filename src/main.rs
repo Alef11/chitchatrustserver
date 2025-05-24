@@ -5,7 +5,7 @@ use chitchatrustserver::db::db::{self};
 use chitchatrustserver::log;
 use chitchatrustserver::logger::logger::{LogExpect, log_error, shutdown_logging};
 use chitchatrustserver::utils::communication_structs::{
-    ErrorResponse, LoginRequest, LoginResponse, RegisterRequest,
+    ErrorResponse, LoginRequest, LoginResponse, RegisterRequest, UserResponse,
 };
 use chitchatrustserver::utils::db_waiter;
 use chitchatrustserver::utils::tls_gen;
@@ -13,6 +13,7 @@ use chitchatrustserver::utils::token;
 use chitchatrustserver::utils::xtime::Xtime;
 use chitchatrustserver::utils::{file_gen, logics};
 use rocket::Request;
+use rocket::config::SecretKey;
 use rocket::http::Cookie;
 use rocket::http::CookieJar;
 use rocket::http::SameSite;
@@ -36,6 +37,7 @@ fn index(client_ip: IpAddr) -> String {
 fn login(
     login: Json<LoginRequest>,
     client_ip: IpAddr,
+    cookies: &CookieJar<'_>,
 ) -> Result<Json<LoginResponse>, Json<ErrorResponse>> {
     log!("[{}]: POST to /login", client_ip);
 
@@ -62,6 +64,21 @@ fn login(
             username,
             exp_time_str
         );
+
+        let mut token_cookie = Cookie::new("token", ttoken.clone());
+        token_cookie.set_path("/");
+        token_cookie.set_http_only(true);
+        token_cookie.set_secure(true);
+        token_cookie.set_same_site(SameSite::None);
+        cookies.add_private(token_cookie);
+
+        // Build and set private username cookie
+        let mut username_cookie = Cookie::new("username", username.clone());
+        username_cookie.set_path("/");
+        username_cookie.set_http_only(true);
+        username_cookie.set_secure(true);
+        username_cookie.set_same_site(SameSite::None);
+        cookies.add_private(username_cookie);
 
         Ok(Json(LoginResponse {
             token: ttoken,
@@ -105,7 +122,7 @@ fn register(
         token_cookie.set_path("/");
         token_cookie.set_http_only(true);
         token_cookie.set_secure(true);
-        token_cookie.set_same_site(SameSite::Lax);
+        token_cookie.set_same_site(SameSite::None);
         cookies.add_private(token_cookie);
 
         // Build and set private username cookie
@@ -113,7 +130,7 @@ fn register(
         username_cookie.set_path("/");
         username_cookie.set_http_only(true);
         username_cookie.set_secure(true);
-        username_cookie.set_same_site(SameSite::Lax);
+        username_cookie.set_same_site(SameSite::None);
         cookies.add_private(username_cookie);
 
         log!(
@@ -136,6 +153,64 @@ fn register(
         return Err(Json(ErrorResponse {
             error: "User already exists".into(),
         }));
+    }
+}
+
+#[post("/logout")]
+pub fn logout(client_ip: IpAddr, cookies: &CookieJar<'_>) -> Json<ErrorResponse> {
+    log!("POST to /logout route");
+
+    let token_cookie = cookies.get_private("token");
+    if let Some(cookie) = token_cookie {
+        let token_value = cookie.value();
+
+        let uuid_cookie = cookies.get_private("username");
+        if let Some(cookie) = uuid_cookie {
+            if let Ok(user_id) = cookie.value().parse::<u32>() {
+                let username = db::get_user_by_id(user_id)
+                    .expect("Failed to get user by ID")
+                    .unwrap()
+                    .username;
+
+                log!("[{}]: Deleted token for User {}", client_ip, username);
+            }
+        }
+
+        db::delete_token(token_value).log_expect("Failed to delete token", file!());
+    }
+
+    // Remove the token cookie
+    cookies.remove_private(Cookie::from("token"));
+    cookies.remove_private(Cookie::from("username"));
+
+    Json(ErrorResponse {
+        error: "Logged out successfully".into(),
+    })
+}
+
+#[get("/user")]
+fn user(cookies: &CookieJar<'_>) -> Result<Json<UserResponse>, Json<ErrorResponse>> {
+    log!("GET to /user route");
+    let token_cookie = cookies.get_private("token").ok_or(Json(ErrorResponse {
+        error: "Token not found".into(),
+    }))?;
+    let token = token_cookie.value();
+
+    let user = db::get_user_by_token(token).map_err(|_| {
+        Json(ErrorResponse {
+            error: "Failed to retrieve user".into(),
+        })
+    })?;
+
+    if let Some(user) = user {
+        Ok(Json(UserResponse {
+            username: user.username,
+            status: "Logged in".to_string(),
+        }))
+    } else {
+        Err(Json(ErrorResponse {
+            error: "User not found".into(),
+        }))
     }
 }
 
@@ -171,10 +246,11 @@ async fn main() -> Result<(), rocket::Error> {
             "certs/certificate.pem",
             "certs/private.pem",
         )),
+        secret_key: SecretKey::generate().expect("Failed to generate secret key"),
         ..rocket::Config::default()
     };
 
-    let allowed_origins = AllowedOrigins::some_exact(&["http://localhost:3000"]);
+    let allowed_origins = AllowedOrigins::some_exact(&["https://localhost"]);
 
     let cors = CorsOptions {
         allowed_origins,
@@ -185,7 +261,7 @@ async fn main() -> Result<(), rocket::Error> {
     .expect("error setting up CORS");
 
     let rocket = rocket::custom(config)
-        .mount("/", routes![index, login, register])
+        .mount("/", routes![index, login, register, user])
         .register("/", catchers![forbidden_request])
         .attach(cors);
 
