@@ -163,7 +163,7 @@ fn test_get_user_by_id() {
 fn test_login_logic() {
     db::create_users_table().expect("Failed to create users table");
 
-    let username = "testuserbyid";
+    let username = "testuserbyid1";
     let password = "testpassword";
     let email = "a@a.com";
     let user1 = User::new(
